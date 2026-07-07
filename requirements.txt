@@ -9,3 +9,6 @@ langchain-tavily
 
 langgraph
 langsmith
+
+langchain-mcp-adapters
+mcp
