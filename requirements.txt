@@ -5,3 +5,7 @@ langchain-groq
 python-dotenv
 langchain-google-genai
 ipykernel
+langchain-tavily
+
+langgraph
+langsmith

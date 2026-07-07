@@ -11,5 +11,8 @@ dependencies = [
     "langchain-google-genai>=4.2.4",
     "langchain-groq>=1.1.2",
     "langchain-openai>=1.2.2",
+    "langchain-tavily",
+    "langgraph>=1.2.4",
+    "langsmith>=0.8.8",
     "python-dotenv>=1.2.2",
 ]
