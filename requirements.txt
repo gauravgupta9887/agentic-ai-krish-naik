@@ -1,14 +1,23 @@
 langchain
 langchain_community
+langchain-core
 langchain-openai
 langchain-groq
 python-dotenv
 langchain-google-genai
 ipykernel
 langchain-tavily
+langchain_text_splitters
 
 langgraph
 langsmith
 
 langchain-mcp-adapters
 mcp
+
+pypdf
+pymupdf
+
+sentence-transformers
+faiss-cpu
+chromadb
