@@ -21,6 +21,7 @@ dependencies = [
     "langchain-tavily",
     "langchain-text-splitters>=1.1.2",
     "langgraph>=1.2.4",
+    "langgraph-checkpoint-sqlite>=3.1.2",
     "langsmith>=0.8.8",
     "mcp>=1.28.1",
     "pymupdf>=1.28.2",
