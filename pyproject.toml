@@ -26,8 +26,10 @@ dependencies = [
     "mcp>=1.28.1",
     "pymupdf>=1.28.2",
     "pypdf>=6.15.0",
+    "pytest>=9.1.1",
     "python-dotenv>=1.2.2",
     "qrcode>=8.2",
     "sentence-transformers>=5.7.0",
     "telethon>=1.45.0",
+    "uuid>=1.30",
 ]
