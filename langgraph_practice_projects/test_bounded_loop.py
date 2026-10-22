@@ -2,26 +2,19 @@ import copy
 import uuid 
 
 import pytest
-from bounded_loop import build_graph, judge
-from langgraph.types import Command
-from langgraph.checkpoint.memory import InMemorySaver
-
 
 @pytest.fixture
 def graph():
     """A fresh graph with its own memory for every test."""
-    return build_graph(InMemorySaver())
-
+    build_graph(InMemorySaver())
 
 @pytest.fixture
 def config():
     """A fresh new config"""
     return {"configurable":{"thread_id":str(uuid.uuid4())}}
 
-
 def run(graph, config, score):
     return graph.invoke({"score":score, "messages":[], "try_count": 0}, config)
-
 
 def visited(graph, config, score):
     """Names of the nodes that ran, in order."""
@@ -40,7 +33,7 @@ def test_router_does_not_change_the_state():
 
 # ------------------------------------------------- 1. the router (no graph)
 
-@pytest.mark.parametrize(
+@pytest.mark.parameterize(
     "score, try_count, expected",
     [
         (10, 1, "start_flow"),
@@ -56,7 +49,7 @@ def test_router_picks_the_right_branch(score, try_count, expected):
 def test_small_score_is_auto_approved_without_pausing(graph, config):
     result = run(graph, config, 49)
     assert "__interrupt__" not in result
-    assert result["messages"] == ["Start function called with present try value of 0", "It's a normal pass in try no. 1"]
+    assert result["messages"] == ["Start function called with present try value of 1", "It's a normal pass in try no. 1"]
 
 def test_path_pauses_then_approves(graph, config):
     paused = run(graph, config, 10)
@@ -66,13 +59,14 @@ def test_path_pauses_then_approves(graph, config):
     assert final["messages"][-1] == "Manual verdict : approved"
 
 def test_path_can_reject(graph, config):
-    run(graph, config, 10)
+    run(graph, config, 200)
     final = graph.invoke(Command(resume="no"), config)
     assert final["messages"][-1] == "Manual verdict : not approved"
 
 def test_large_score_goes_to_the_director(graph, config):
     result = run(graph, config, 10)
-    assert result["messages"] == ["Start function called with present try value of 0", "Start function called with present try value of 1","Start function called with present try value of 2"]
+    assert "__interrupt__" not in result
+    assert result["messages"] == ["Start function called with present try value of 1", "It's a normal pass in try no. 1", "Start function called with present try value of 2","Start function called with present try value of 3"]
 
 
 def test_path_taken_is_exactly_what_we_expect(graph, config):
@@ -84,7 +78,7 @@ def test_different_threads_do_not_share_messagess(graph):
     b = {"configurable": {"thread_id": "B"}}
     run(graph, a, 49)
     result_b = run(graph, b, 49)
-    assert result_b["messages"] == ["Start function called with present try value of 0", "It's a normal pass in try no. 1"]
+    assert result_b["messages"] == ["Start function called with present try value of 1", "It's a normal pass in try no. 1"]
 
 
 def test_reusing_a_thread_keeps_the_old_messagess(graph, config):
