@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 tg_snipe.py - make a Telegram message ARRIVE at Telegram's servers at an exact moment.
- 
+
 Why you keep coming 2nd/3rd: your PC clock is usually off by 20-500 ms, and the
 message also needs ~30-100 ms to travel to Telegram. This script fixes both:
   1. syncs to atomic time via NTP (millisecond accuracy, no admin rights needed)
@@ -11,19 +11,19 @@ message also needs ~30-100 ms to travel to Telegram. This script fixes both:
      busy-waits the last few ms so nothing is slow at the critical moment
   4. if the group is still locked at that instant, it re-sends back-to-back
      until it goes through
- 
+
 Setup (one time):
     pip install telethon cryptg qrcode
     Get api_id / api_hash at https://my.telegram.org  ->  "API development tools"
     Fill in the CONFIG section below OR a .env file next to this script.
     First run asks for your phone number + login code; a session file is saved.
- 
+
 Step 1 - calibrate (sends ~24 test messages to your Saved Messages, then deletes them):
     python tg_snipe.py --calibrate
- 
+
 Step 2 - real run (start it any time before 10:02:20):
     python tg_snipe.py
- 
+
 Priority of settings:  command-line flag  >  .env / environment variable  >  CONFIG below.
 """
 import argparse
@@ -37,7 +37,7 @@ import statistics
 import struct
 import sys
 import time
- 
+
 # ==========================================================================
 # CONFIG - fill these in here, or put the same keys in a .env file
 # (values in .env / environment variables override what is written here)
@@ -49,7 +49,7 @@ CONFIG = {
     "TG_SESSION":    "snipe",              # session file name (snipe.session is created)
     "TG_CHAT":       "YOUR_CHAT",          # @group_username, https://t.me/xyz, -100123..., or @some_bot
     "TG_TEXT":       "YOUR_MESSAGE",       # the exact message (single line; use \n for new lines)
-    "TG_TEXT_FILE":  "message.txt",        # OR put a multi-line message in this file (wins over TG_TEXT)
+    "TG_TEXT_FILE":  "message.txt",        # file(s) with the message; several: "msg_151.txt,msg_156.txt"
     "TG_AT":         "10:03:00",           # target time in IST, HH:MM:SS
     "TG_MARGIN_MS":  "10",                 # ms AFTER target to land (use value from --calibrate)
     "TG_RETRY_FOR":  "3",
@@ -57,12 +57,13 @@ CONFIG = {
     "TG_CALIBRATE_CHAT": "me",
     "TG_BURST":      "12",                 # copies to send around 10:03:00 (1 = single message)
     "TG_BURST_SPREAD_MS": "600",           # window the copies are spread over (ms)
-    "TG_BURST_EARLY_MS": "30",             # start this many ms before the estimated edge
+    "TG_BURST_EARLY_MS": "0",             # start this many ms before the estimated edge
     "TG_DELETE_EXTRAS": "0",               # 0 = keep every copy, 1 = delete all but first on-time
+    "TG_REFERENCE":  "realtime",           # realtime = real 10:03:00 like everyone's phone; telegram = TG stamps
     "TG_LIVE_CALIBRATION": "1",            # 1 = auto-calibrate on Telegram's clock 50 s before target             # chat for calibration tests (me = Saved Messages)                  # seconds to keep re-sending if chat is still locked
 }
- 
- 
+
+
 def _load_env_file(path):
     """Minimal .env reader (no extra package needed). KEY=value per line."""
     if not os.path.isfile(path):
@@ -90,27 +91,27 @@ def _load_env_file(path):
         else:
             v = v.strip()
         os.environ.setdefault(k, v)     # real env vars still win
- 
- 
+
+
 _load_env_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 _load_env_file(".env")
- 
- 
+
+
 def cfg(key):
     v = os.environ.get(key, CONFIG.get(key, ""))
     return None if (v == "" or str(v).startswith("YOUR_")) else v
- 
+
 try:  # faster event loop on Linux/macOS (optional)
     import uvloop
     uvloop.install()
 except Exception:
     pass
- 
+
 from telethon import TelegramClient, functions, types
 from telethon.errors import FloodWaitError, RPCError
- 
+
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
- 
+
 # --------------------------------------------------------------------------
 # Precise clock: perf_counter (sub-microsecond) anchored to wall time + NTP fix
 # --------------------------------------------------------------------------
@@ -119,27 +120,27 @@ def _anchor():
     while time.time() == t:        # wait for a tick so the anchor is exact
         pass
     return time.time(), time.perf_counter()
- 
+
 _BASE_WALL, _BASE_PERF = _anchor()
 _OFFSET = 0.0                       # correction from NTP (seconds)
- 
- 
+
+
 def _raw():
     return _BASE_WALL + (time.perf_counter() - _BASE_PERF)
- 
- 
+
+
 def now():
     """Best estimate of true UTC epoch seconds."""
     return _raw() + _OFFSET
- 
- 
+
+
 def fmt(t):
     return dt.datetime.fromtimestamp(t, IST).strftime("%H:%M:%S.%f")[:-3]
- 
- 
+
+
 NTP_SERVERS = ["time.google.com", "time.cloudflare.com", "time.windows.com", "pool.ntp.org"]
- 
- 
+
+
 def _sntp(server, timeout=0.6):
     addr = socket.getaddrinfo(server, 123, socket.AF_INET, socket.SOCK_DGRAM)[0][4]
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -148,15 +149,15 @@ def _sntp(server, timeout=0.6):
         s.sendto(b"\x23" + b"\0" * 47, addr)
         data, _ = s.recvfrom(48)
         t3 = _raw()
- 
+
     def ts(i):
         sec, frac = struct.unpack("!II", data[i:i + 8])
         return sec - 2208988800 + frac / 2**32
- 
+
     t1, t2 = ts(32), ts(40)
     return ((t1 - t0) + (t2 - t3)) / 2, (t3 - t0) - (t2 - t1)   # offset, delay
- 
- 
+
+
 def sync_clock(samples=4):
     """Returns (offset_s, best_delay_s) or None. Uses lowest-delay samples."""
     global _OFFSET
@@ -172,15 +173,15 @@ def sync_clock(samples=4):
     res.sort(key=lambda r: r[1])
     _OFFSET = statistics.median(r[0] for r in res[:3])
     return _OFFSET, res[0][1]
- 
- 
+
+
 # --------------------------------------------------------------------------
 # Telegram helpers
 # --------------------------------------------------------------------------
 def _ping():
     return functions.PingRequest(ping_id=random.getrandbits(62))
- 
- 
+
+
 async def measure_rtt(client, n=15):
     rtts = []
     for _ in range(n):
@@ -189,8 +190,8 @@ async def measure_rtt(client, n=15):
         rtts.append(time.perf_counter() - t0)
         await asyncio.sleep(0.05)
     return rtts
- 
- 
+
+
 async def wait_until(t, client=None):
     """Sleep until t (true time); keep connection warm; spin the last 150 ms."""
     while True:
@@ -204,13 +205,13 @@ async def wait_until(t, client=None):
             await asyncio.sleep(d - 0.15)
     while now() < t:                                    # busy-wait final ms
         pass
- 
- 
+
+
 def send_req(peer, text):
     return functions.messages.SendMessageRequest(
         peer=peer, message=text, no_webpage=True, random_id=random.getrandbits(63))
- 
- 
+
+
 def extract(res):
     if isinstance(res, types.UpdateShortSentMessage):
         return res.id, res.date
@@ -218,8 +219,8 @@ def extract(res):
         if isinstance(u, (types.UpdateNewMessage, types.UpdateNewChannelMessage)):
             return u.message.id, u.message.date
     return None, None
- 
- 
+
+
 async def prepare(client, ntp=True):
     r = "skip"
     if ntp:
@@ -240,15 +241,15 @@ async def prepare(client, ntp=True):
         print("  !! High jitter. Use wired internet / close downloads, or run from a VPS near your DC.")
     LAST_RTTS[:] = rtts
     return med / 2
- 
- 
+
+
 # --------------------------------------------------------------------------
 # Modes
 # --------------------------------------------------------------------------
 CALIB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calibration.json")
 LAST_RTTS = []
- 
- 
+
+
 async def measure_q(client, peer, text, n=12):
     """
     Send n test messages at different points inside a second and read Telegram's own
@@ -276,8 +277,8 @@ async def measure_q(client, peer, text, n=12):
     print(f"  Telegram delay+clock difference Q = {min(good)*1000:+.0f} .. {max(good)*1000:+.0f} ms "
           f"({best}/{len(samples)} test sends agree)")
     return min(good), max(good), ids
- 
- 
+
+
 async def calibrate(client, text=None, chat="me"):
     """
     Measures Q = time from pressing send (on your clock) to the moment Telegram stamps
@@ -290,7 +291,7 @@ async def calibrate(client, text=None, chat="me"):
     peer = await client.get_input_entity(chat)
     text = text or "calibration"
     ids = []
- 
+
     async def send_at(t):
         await wait_until(t)
         t_send = now()
@@ -299,7 +300,7 @@ async def calibrate(client, text=None, chat="me"):
         if mid:
             ids.append(mid)
         return t_send, date.timestamp()
- 
+
     try:
         # ---- Step 1: Telegram stamps whole seconds; sending at 20 different points
         # inside a second pins down Q (each send says Q is in [stamp-t, stamp+1-t)).
@@ -325,7 +326,7 @@ async def calibrate(client, text=None, chat="me"):
                   f"{'BEHIND' if skew < 0 else 'AHEAD OF'} your synced clock. The script now "
                   "aims at TELEGRAM's 10:03:00, which is what the group sees.)")
         center = round(-Q * 1000)            # send offset that lands exactly on the second
- 
+
         # ---- Step 2: fine sweep around that point with real sends
         lo, hi = center - 60, center + 60
         print(f"\nStep 2/2 - fine search from {lo:+d} to {hi:+d} ms ...")
@@ -348,7 +349,7 @@ async def calibrate(client, text=None, chat="me"):
     finally:
         if ids:
             await client.delete_messages(chat, ids)
- 
+
     jitter = (max(LAST_RTTS) - min(LAST_RTTS)) * 1000 if LAST_RTTS else 40
     buffer = max(10, round(jitter / 4))
     offset = edge + buffer
@@ -359,8 +360,8 @@ async def calibrate(client, text=None, chat="me"):
     print(f"Saved FIRE OFFSET = {offset:+d} ms (edge + {buffer} ms jitter buffer) to calibration.json")
     print("The real run uses this automatically (valid 12 h). Re-calibrate on the same network "
           "shortly before 10:03.")
- 
- 
+
+
 async def spin_until(t):
     """Like wait_until but yields to the event loop so queued sends go out immediately."""
     d = t - now()
@@ -368,72 +369,102 @@ async def spin_until(t):
         await asyncio.sleep(d - 0.03)
     while now() < t:
         await asyncio.sleep(0)
- 
- 
+
+
+def _label(text):
+    first = text.strip().splitlines()[0] if text.strip() else "(empty)"
+    return first if len(first) <= 30 else first[:29] + "~"
+
+
 async def burst_send(client, peer, a, target, start):
     """
-    Send a.burst copies evenly over a.burst_spread_ms starting at `start`.
-    If a.delete_extras: keep only the first copy stamped at/after target, delete the rest.
-    Otherwise all copies stay in the chat.
+    Send every message in a.texts, a.burst times each, over a.burst_spread_ms from `start`.
+    Copies are interleaved (msg1, msg2, msg1, msg2, ...) so each message's first copy
+    goes out in the very first round, back-to-back.
+    If a.delete_extras: per message keep only the first (on-time) copy, delete the rest.
     """
+    texts = a.texts
     n, spread = a.burst, a.burst_spread_ms / 1000
-    times = [start + i * spread / (n - 1) for i in range(n)]
-    reqs = [send_req(peer, a.text) for _ in times]
-    for r in reqs:
-        bytes(r)                                        # pre-serialize
+    times = [start + (i * spread / (n - 1) if n > 1 else 0.0) for i in range(n)]
+    plan = [(t, k, send_req(peer, texts[k])) for t in times for k in range(len(texts))]
+    for _, _, r in plan:
+        bytes(r)                                        # pre-serialize everything
     await wait_until(times[0] - 0.2)
     sent = []
-    for t, r in zip(times, reqs):
-        await spin_until(t)
-        sent.append((now(), asyncio.ensure_future(client(r))))
-    results = await asyncio.gather(*(f for _, f in sent), return_exceptions=True)
- 
+    for t, k, r in plan:
+        await spin_until(t)                             # same t in a round -> back-to-back
+        sent.append((now(), k, asyncio.ensure_future(client(r))))
+    results = await asyncio.gather(*(f for _, _, f in sent), return_exceptions=True)
+
     tsec = math.floor(target)
-    rows, ok = [], []
-    for (t_send, _), res in zip(sent, results):
+    rows = []                                           # (t_send, k, mid, stamp, err)
+    ok = {k: [] for k in range(len(texts))}
+    for (t_send, k, _), res in zip(sent, results):
         if isinstance(res, Exception):
-            rows.append((t_send, None, None, type(res).__name__))
+            rows.append((t_send, k, None, None, type(res).__name__))
             continue
         mid, date = extract(res)
         stamp = int(date.timestamp()) if date else None
-        rows.append((t_send, mid, stamp, ""))
+        rows.append((t_send, k, mid, stamp, ""))
         if mid:
-            ok.append((mid, stamp))
-    on_time = sorted((m, st) for m, st in ok if st is not None and st >= tsec)
-    keep = on_time[0][0] if on_time else None
-    to_delete = [m for m, _ in ok if m != keep] if a.delete_extras else []
-    if to_delete:
-        try:
-            await client.delete_messages(peer, to_delete, revoke=True)
-        except Exception as e:
-            print(f"!! Could not delete extra copies ({type(e).__name__}) - delete them manually NOW")
- 
-    if keep is None:                                    # all early / failed -> send one now
-        print("No copy landed at/after target - sending one more immediately ...")
-        res = await client(send_req(peer, a.text))
-        keep, date = extract(res)
-        rows.append((now(), keep, int(date.timestamp()) if date else None, "fallback"))
- 
+            ok[k].append((mid, stamp))
+
+    keep = {}
+    for k, lst in ok.items():
+        cands = sorted(lst) if a.realtime else sorted((m, st) for m, st in lst
+                                                      if st is not None and st >= tsec)
+        keep[k] = cands[0][0] if cands else None
+    if a.delete_extras:
+        to_delete = [m for k, lst in ok.items() for m, _ in lst if m != keep[k]]
+        if to_delete:
+            try:
+                await client.delete_messages(peer, to_delete, revoke=True)
+            except Exception as e:
+                print(f"!! Could not delete extra copies ({type(e).__name__}) - delete them manually NOW")
+
+    for k in range(len(texts)):                         # nothing usable -> send one now
+        if keep[k] is None:
+            print(f"No usable copy of '{_label(texts[k])}' - sending one more immediately ...")
+            t_fb = now()
+            try:
+                res = await client(send_req(peer, texts[k]))
+                keep[k], date = extract(res)
+                rows.append((t_fb, k, keep[k], int(date.timestamp()) if date else None, "fallback"))
+            except RPCError as e:
+                rows.append((t_fb, k, None, None, type(e).__name__))
+
     print("\n===== BURST RESULT =====")
-    for t_send, mid, stamp, err in rows:
+    for t_send, k, mid, stamp, err in rows:
         st = dt.datetime.fromtimestamp(stamp, IST).strftime("%H:%M:%S") if stamp else "--:--:--"
         if not mid:
             tag = f"failed: {err}"
-        elif mid == keep:
-            tag = "<== FIRST ON-TIME (this one counts)"
+        elif mid == keep[k]:
+            tag = "<== FIRST" if a.realtime else "<== FIRST ON-TIME (this one counts)"
         elif a.delete_extras:
             tag = "deleted"
         else:
-            tag = "EARLY (still visible)" if stamp is not None and stamp < tsec else "extra copy"
-        print(f"  sent {fmt(t_send)}  -> Telegram stamp {st}  id {mid}  {tag}")
-    kept_stamp = next((st for _, m, st, _ in rows if m == keep), None)
-    if kept_stamp == tsec:
-        print(f"\nRESULT: PASS - kept message stamped {fmt(tsec)[:8]} (the target second).")
+            tag = ("EARLY (still visible)" if stamp is not None and stamp < tsec and not a.realtime
+                   else "extra copy")
+        name = f"[{_label(texts[k])}]" if len(texts) > 1 else ""
+        print(f"  sent {fmt(t_send)} {name} -> stamp {st}  id {mid}  {tag}")
+
+    print()
+    for k in range(len(texts)):
+        if keep[k]:
+            print(f"  first copy of '{_label(texts[k])}' = message id {keep[k]}")
+        else:
+            print(f"  '{_label(texts[k])}' FAILED - nothing was sent")
+    if a.realtime:
+        print("\nSent at real target time (by NTP). This group's Telegram stamps run ~1-2 s behind "
+              "real time, so the app may show the previous minute - other people's messages will too.\n"
+              "What matters is ORDER: check that no one else's booking is above your first copies.")
     else:
-        print(f"\nRESULT: kept message stamped {kept_stamp - tsec:+d} s from target." if kept_stamp
-              else "\nRESULT: FAILED - nothing was sent.")
- 
- 
+        for k in range(len(texts)):
+            st = next((r[3] for r in rows if r[2] == keep[k]), None)
+            res_txt = ("PASS" if st == tsec else f"stamped {st - tsec:+d} s from target") if st else "FAILED"
+            print(f"RESULT '{_label(texts[k])}': {res_txt}")
+
+
 async def snipe(client, a):
     peer = await client.get_input_entity(a.chat)
     hh, mm, ss = (list(map(int, a.at.split(":"))) + [0])[:3]
@@ -451,7 +482,7 @@ async def snipe(client, a):
                 a.burst = 1
         except Exception:
             pass
- 
+
     # Idle with keep-alive until 40 s before, then do fresh clock + latency measurements
     await wait_until(target - (50 if a.live_cal else 40), client)
     one_way = await prepare(client, ntp=not a.live_cal)
@@ -473,7 +504,7 @@ async def snipe(client, a):
         offset_ms, how = -live[0] * 1000 + 10, "live calibration (+10 ms safety)"
     elif a.fire_offset_ms is not None:
         offset_ms, how = a.fire_offset_ms, "TG_FIRE_OFFSET_MS setting"
-    elif os.path.isfile(CALIB_FILE):
+    elif os.path.isfile(CALIB_FILE) and not a.realtime:
         import json
         c = json.load(open(CALIB_FILE))
         age_h = (now() - c["measured_at"]) / 3600
@@ -493,25 +524,29 @@ async def snipe(client, a):
         print(f"Using fire offset {offset_ms:+.0f} ms from {how}.")
     else:
         fire_at = target + a.margin_ms / 1000 - one_way
-        print("  !! No calibration found - guessing from latency. Run --calibrate first for accuracy.")
+        if a.realtime:
+            print(f"Aiming at REAL time {fmt(target)} + {a.margin_ms:.0f} ms (clock synced by NTP, "
+                  f"one-way latency {one_way*1000:.0f} ms).")
+        else:
+            print("  !! No calibration found - guessing from latency. Run --calibrate first for accuracy.")
     print(f"Will fire at {fmt(fire_at)} IST. Do not touch anything.")
- 
-    if a.burst > 1:
+
+    if a.burst > 1 or len(a.texts) > 1:
         center = target + center_ms / 1000 if center_ms is not None else fire_at
         start = center - a.burst_early_ms / 1000
-        print(f"Burst: {a.burst} copies from {fmt(start)} to "
+        print(f"Burst: {len(a.texts)} message(s) x {a.burst} copies from {fmt(start)} to "
               f"{fmt(start + a.burst_spread_ms / 1000)} (local clock)"
               + ("" if a.delete_extras else " - extras are NOT deleted"))
         await wait_until(start - 1.5, client)
         await client(_ping())
         return await burst_send(client, peer, a, target, start)
- 
+
     await wait_until(fire_at - 1.5, client)
     await client(_ping())                    # last warm-up; nothing in flight at fire time
     first_req = send_req(peer, a.text)       # built in advance - zero work at fire time
     bytes(first_req)                         # warm up serializer
     await wait_until(fire_at)
- 
+
     errors, attempt = [], 0
     deadline = fire_at + a.retry_for
     while True:
@@ -529,7 +564,7 @@ async def snipe(client, a):
             if now() > deadline:
                 print("Gave up retrying. Errors:", errors[-5:])
                 return
- 
+
     mid, date = extract(res)
     print("\n===== SENT =====")
     print(f"first attempt fired  : {fmt(fire_at)}")
@@ -547,8 +582,8 @@ async def snipe(client, a):
             print(f"\nRESULT: LATE - stamped {stamp - tsec} s after target. Re-run --calibrate.")
     if errors:
         print(f"rejected attempts ({len(errors)}), first: {errors[0]}  -> chat was locked until it opened")
- 
- 
+
+
 CODE_WHERE = {
     "SentCodeTypeApp": "inside the Telegram APP (chat named 'Telegram' with blue tick) - NOT by SMS",
     "SentCodeTypeSms": "by SMS",
@@ -563,8 +598,8 @@ CODE_WHERE = {
     "SentCodeTypeSetUpEmailRequired": "nowhere yet - Telegram wants you to set up a login email "
                                       "in the official app first",
 }
- 
- 
+
+
 async def qr_login(client):
     """Log in by scanning a QR with the Telegram app - no code needed."""
     import webbrowser
@@ -600,8 +635,8 @@ async def qr_login(client):
     except OSError:
         pass
     print("Logged in. Session saved; you won't need to scan again.")
- 
- 
+
+
 async def login(client, phone):
     """Verbose login so you can see exactly where it gets stuck."""
     from telethon.errors import (SessionPasswordNeededError, PhoneNumberInvalidError,
@@ -632,7 +667,7 @@ async def login(client, phone):
         sys.exit(f"Telegram says the phone number '{phone}' is invalid.")
     except FloodWaitError as e:
         sys.exit(f"Too many code requests. Telegram says wait {e.seconds // 60} min {e.seconds % 60} s.")
- 
+
     while True:
         where = CODE_WHERE.get(type(sent.type).__name__, type(sent.type).__name__)
         print(f"\nLogin code sent {where}.")
@@ -649,7 +684,7 @@ async def login(client, phone):
             sent = await client(functions.auth.ResendCodeRequest(phone, sent.phone_code_hash))
         except FloodWaitError as e:
             print(f"  Resend blocked, wait {e.seconds} s.")
- 
+
     try:
         await client.sign_in(phone, code, phone_code_hash=sent.phone_code_hash)
     except SessionPasswordNeededError:
@@ -658,8 +693,8 @@ async def login(client, phone):
     except (PhoneCodeInvalidError, PhoneCodeExpiredError) as e:
         sys.exit(f"{type(e).__name__}: wrong or expired code - run again.")
     print("Logged in. Session saved; you won't need the code again.")
- 
- 
+
+
 async def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--api-id", default=cfg("TG_API_ID"))
@@ -687,28 +722,44 @@ async def main():
                    help="send N copies around the target, keep only the first on-time one")
     p.add_argument("--burst-spread-ms", type=float, default=float(cfg("TG_BURST_SPREAD_MS") or 300),
                    help="time window the burst copies are spread over")
-    p.add_argument("--burst-early-ms", type=float, default=float(cfg("TG_BURST_EARLY_MS") or 30),
+    p.add_argument("--burst-early-ms", type=float, default=float(cfg("TG_BURST_EARLY_MS") or 0),
                    help="start the burst this many ms before the estimated edge")
     p.add_argument("--delete-extras", type=int, default=int(cfg("TG_DELETE_EXTRAS") or 0),
                    help="1 = delete early/duplicate copies, 0 = keep all")
     p.add_argument("--live-cal", type=int, default=int(cfg("TG_LIVE_CALIBRATION") or 1),
                    help="1 = calibrate against Telegram's clock ~1 min before target (recommended)")
+    p.add_argument("--reference", default=cfg("TG_REFERENCE") or "realtime",
+                   choices=["realtime", "telegram"],
+                   help="realtime = aim at real 10:03:00 (what phones show, via NTP); "
+                        "telegram = aim at the group's Telegram timestamp")
     p.add_argument("--text-file", default=cfg("TG_TEXT_FILE"), help="file containing the message")
     a = p.parse_args()
- 
+    a.realtime = a.reference == "realtime"
+    if a.realtime:
+        a.live_cal = 0
+
     # Message: file (exact, multi-line) > TG_TEXT (\n = new line)
-    tf = a.text_file
-    if tf and not os.path.isabs(tf) and not os.path.isfile(tf):
-        tf = os.path.join(os.path.dirname(os.path.abspath(__file__)), tf)
-    if tf and os.path.isfile(tf):
-        with open(tf, encoding="utf-8") as f:
-            a.text = f.read().rstrip("\r\n")
-    elif a.text:
-        a.text = a.text.replace("\\n", "\n")
-    if a.text and a.list_chats is None:
-        print("Message to send:\n----------------\n" + a.text + "\n----------------"
-              f"\n({len(a.text)} chars, {len(a.text.encode())} bytes)\n")
- 
+    # TG_TEXT_FILE may list several files separated by commas -> several messages
+    a.texts = []
+    here = os.path.dirname(os.path.abspath(__file__))
+    for tf in [x.strip() for x in (a.text_file or "").split(",") if x.strip()]:
+        if not os.path.isabs(tf) and not os.path.isfile(tf):
+            tf = os.path.join(here, tf)
+        if os.path.isfile(tf):
+            with open(tf, encoding="utf-8") as f:
+                t = f.read().rstrip("\r\n")
+            if t.strip():
+                a.texts.append(t)
+        elif a.list_chats is None:
+            print(f"  !! message file not found: {tf}")
+    if not a.texts and a.text:
+        a.texts = [a.text.replace("\\n", "\n")]
+    a.text = a.texts[0] if a.texts else None
+    if a.texts and a.list_chats is None:
+        for i, t in enumerate(a.texts, 1):
+            print(f"Message {i} of {len(a.texts)}:\n----------------\n{t}\n----------------"
+                  f"\n({len(t)} chars)\n")
+
     missing = [n for n, v in (("TG_API_ID", a.api_id), ("TG_API_HASH", a.api_hash)) if not v]
     if a.test:
         a.chat = a.calibrate_chat if a.calibrate_chat != "me" else "me"
@@ -727,13 +778,13 @@ async def main():
     a.chat = chat
     if str(a.calibrate_chat).lstrip("-").isdigit():
         a.calibrate_chat = int(a.calibrate_chat)
- 
+
     client = TelegramClient(a.session, int(a.api_id), a.api_hash)
     client.flood_sleep_threshold = 0
     await login(client, a.phone)
     me = await client.get_me()
     print(f"Logged in as {me.first_name} (DC {client.session.dc_id})")
- 
+
     if a.list_chats is not None:
         print(f"\n{'TG_CHAT value':<26} {'type':<8} name")
         async for d in client.iter_dialogs():
@@ -749,7 +800,7 @@ async def main():
             sys.exit("--chat and --text are required (or use --calibrate)")
         await snipe(client, a)
     await client.disconnect()
- 
- 
+
+
 if __name__ == "__main__":
     asyncio.run(main())
