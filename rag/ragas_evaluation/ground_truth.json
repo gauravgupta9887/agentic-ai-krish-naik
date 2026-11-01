@@ -1,0 +1,122 @@
+[
+  {
+    "id": "q01",
+    "type": "definition",
+    "question": "What is the 'hard cut' problem in fixed-size chunking?",
+    "ground_truth": "The hard cut problem happens when the token or character limit is reached in the middle of a crucial defining sentence, so the definition is split across two separate chunks. When a user asks about that definition, retrieval may return only the first half, which lacks the conclusion, or only the second half, which lacks the subject.",
+    "evidence": "the definition is split across two separate chunks",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q02",
+    "type": "numeric-lookup",
+    "question": "With a chunk size of 500 tokens and an overlap of 100 tokens, which tokens does Chunk 2 cover?",
+    "ground_truth": "Chunk 2 covers tokens 400 to 900.",
+    "evidence": "Chunk 2: Tokens 400 to 900",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q03",
+    "type": "table-lookup",
+    "question": "What was the Net Profit in Q4 2023?",
+    "ground_truth": "The Net Profit in Q4 2023 was $53.8 million.",
+    "evidence": "Q4 2023 $145.0 $91.2 $53.8",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q04",
+    "type": "table-aggregate",
+    "question": "Which quarter of 2023 had the lowest Net Profit, and what was it?",
+    "ground_truth": "Q3 2023 had the lowest Net Profit, at $38.7 million.",
+    "evidence": "Q3 2023 $119.2 $80.5 $38.7",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q05",
+    "type": "list-multi-chunk",
+    "question": "What are the first and the last steps of the shutdown procedure described for the server cluster?",
+    "ground_truth": "The first step is to verify that all active user sessions have been terminated. The last step is to engage the physical safety lock on the server rack.",
+    "evidence": "Engage the physical safety lock on the server rack",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q06",
+    "type": "reasoning",
+    "question": "Why does token-based chunking add computational overhead compared with character-based chunking?",
+    "ground_truth": "Because the text must be run through a tokenizer during the chunking phase, which adds computational overhead.",
+    "evidence": "you must run the text through a tokenizer",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q07",
+    "type": "table-lookup",
+    "question": "According to the comparison of chunking strategies, what is the drawback of semantic chunking?",
+    "ground_truth": "Semantic chunking is computationally expensive, although it offers the highest contextual coherence.",
+    "evidence": "Computationally expensive",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q08",
+    "type": "definition",
+    "question": "What is the dilution effect in vector embeddings?",
+    "ground_truth": "When a chunk is very large, its embedding becomes a blended smoothie of many different concepts. For a specific question, a short and precise chunk will then have a much higher cosine similarity than the diluted, multi-topic large chunk.",
+    "evidence": "blended smoothie",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q09",
+    "type": "factoid",
+    "question": "What happens if a chunk longer than 512 tokens is embedded with bert-base-uncased?",
+    "ground_truth": "The chunk is truncated: the model silently drops any tokens beyond the 512th, which leads to data loss.",
+    "evidence": "silently drops any tokens beyond the 512th",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q10",
+    "type": "definition",
+    "question": "What does the RAGAS Faithfulness metric measure?",
+    "ground_truth": "Faithfulness measures whether the generated answer is hallucinated or strictly derived from the retrieved chunks.",
+    "evidence": "strictly derived from the retrieved chunks",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q11",
+    "type": "reasoning",
+    "question": "What are the storage and cost implications of using a 20% chunk overlap?",
+    "ground_truth": "A 20% overlap increases the total number of tokens stored in the vector database by roughly 20%, which means higher embedding API costs and increased storage requirements. It can also feed duplicate information to the generative LLM when overlapping chunks are retrieved together.",
+    "evidence": "increases by roughly 20%",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q12",
+    "type": "factoid",
+    "question": "Why is BM25 called a sparse retrieval method, and what is its limitation?",
+    "ground_truth": "BM25 is a sparse retrieval method, meaning it struggles with synonyms and complex semantic relationships.",
+    "evidence": "struggles with synonyms",
+    "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf"
+  },
+  {
+    "id": "q13",
+    "type": "factoid",
+    "question": "Which technique do the DSA tips recommend when dealing with the top, maximum, minimum or closest K elements among N elements?",
+    "ground_truth": "Use a Heap.",
+    "evidence": "will be using a Heap",
+    "source": "BASIC_DSA_TRCIKS.pdf"
+  },
+  {
+    "id": "q14",
+    "type": "factoid",
+    "question": "Which coding pattern is also known as the Hare and Tortoise algorithm, and how does it work?",
+    "ground_truth": "Fast and Slow Pointers. It uses two pointers that traverse the input data at different speeds.",
+    "evidence": "Also known as Hare & Tortoise",
+    "source": "Tricks_for_DSA_Problem_Solving.pdf"
+  },
+  {
+    "id": "q15",
+    "type": "list-lookup",
+    "question": "What are the three types of machine learning listed in the machine learning basics text?",
+    "ground_truth": "Supervised learning (learning with labeled data), unsupervised learning (finding patterns in unlabeled data), and reinforcement learning (learning through rewards and penalties).",
+    "evidence": "3. Reinforcement Learning",
+    "source": "machine_learning.txt"
+  }
+]

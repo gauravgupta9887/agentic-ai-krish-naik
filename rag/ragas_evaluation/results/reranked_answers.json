@@ -1,0 +1,602 @@
+[
+  {
+    "question": "What is the 'hard cut' problem in fixed-size chunking?",
+    "answer": "The \"hard cut\" problem occurs when the token limit is reached in the middle of a crucial defining sentence, splitting the definition across two separate chunks.",
+    "contexts": [
+      "chunk will fit perfectly into the model's context window. The downside is that you must run the text\nthrough a tokenizer during the chunking phase, adding computational overhead.\n6.2 The Hard Cut Problem\nThe fatal flaw of naive fixed-size chunking is the \"hard cut.\" If the token limit is reached in the middle of a\ncrucial defining sentence, the definition is split across two separate chunks. When a user asks a question",
+      "7. Overlap and Sliding Windows\nTo mitigate the \"hard cut\" problem inherent in fixed-size chunking, practitioners employ overlap, also\nknown as a sliding window approach.\n7.1 The Mechanics of Overlap\nInstead of starting the next chunk exactly where the previous one ended, an overlapping strategy steps\nback a defined number of characters or tokens and duplicates a portion of the text. For example, with a\nchunk size of 500 tokens and an overlap of 100 tokens:\nChunk 1: Tokens 0 to 500",
+      "6. Fixed-Size Chunking Algorithms\nFixed-size chunking is the most basic implementation available. It requires defining a specific threshold—\nusually measured in characters or tokens—and systematically dividing the text once that threshold is\nreached.\n6.1 Character vs. Token Measurement\nWhen implementing a fixed-size strategy, developers must choose a unit of measurement.\nCharacter-based chunking is language agnostic and requires no external libraries. A chunk size of 1000"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 37,
+        "score": 8.0097,
+        "dense_rank": 6
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 39,
+        "score": 7.0672,
+        "dense_rank": 2
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 35,
+        "score": 0.5442,
+        "dense_rank": 1
+      }
+    ],
+    "id": "q01",
+    "type": "definition",
+    "ground_truth": "The hard cut problem happens when the token or character limit is reached in the middle of a crucial defining sentence, so the definition is split across two separate chunks. When a user asks about that definition, retrieval may return only the first half, which lacks the conclusion, or only the second half, which lacks the subject.",
+    "evidence": "the definition is split across two separate chunks",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 1.23,
+    "hit_at_pool": true
+  },
+  {
+    "question": "With a chunk size of 500 tokens and an overlap of 100 tokens, which tokens does Chunk 2 cover?",
+    "answer": "Chunk 2 covers tokens 400 to 900.",
+    "contexts": [
+      "7. Overlap and Sliding Windows\nTo mitigate the \"hard cut\" problem inherent in fixed-size chunking, practitioners employ overlap, also\nknown as a sliding window approach.\n7.1 The Mechanics of Overlap\nInstead of starting the next chunk exactly where the previous one ended, an overlapping strategy steps\nback a defined number of characters or tokens and duplicates a portion of the text. For example, with a\nchunk size of 500 tokens and an overlap of 100 tokens:\nChunk 1: Tokens 0 to 500",
+      "Chunk 1: Tokens 0 to 500\nChunk 2: Tokens 400 to 900\nChunk 3: Tokens 800 to 1300\nThis creates a safety net. If a crucial sentence straddles the boundary at token 500, it might be cut in half\nin Chunk 1. However, because Chunk 2 begins at token 400, that same sentence is highly likely to be\ncaptured in its entirety within Chunk 2. The semantic meaning is preserved in at least one of the vector\nrepresentations.\n7.2 Storage and Cost Implications",
+      "11. Vector Embeddings and Chunk Size\nThe ideal chunk size is not determined in a vacuum; it is heavily influenced by the specific embedding\nmodel being utilized in the RAG pipeline.\n11.1 Model Context Limits\nOlder models like `bert-base-uncased` have a hard limit of 512 tokens. Attempting to embed a chunk\nlarger than this will result in truncation—the model silently drops any tokens beyond the 512th, leading to"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 39,
+        "score": 5.587,
+        "dense_rank": 2
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 40,
+        "score": 5.4539,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 13,
+        "chunk_id": 51,
+        "score": 0.0871,
+        "dense_rank": 5
+      }
+    ],
+    "id": "q02",
+    "type": "numeric-lookup",
+    "ground_truth": "Chunk 2 covers tokens 400 to 900.",
+    "evidence": "Chunk 2: Tokens 400 to 900",
+    "hit_at_k": true,
+    "reciprocal_rank": 0.5,
+    "gen_seconds": 0.81,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What was the Net Profit in Q4 2023?",
+    "answer": "$53.8M",
+    "contexts": [
+      "rows.\nQuarter Revenue (M) Operating Cost (M) Net Profit (M)\nQ1 2023 $124.5 $82.1 $42.4\nQ2 2023 $132.8 $85.0 $47.8\nQ3 2023 $119.2 $80.5 $38.7\nQ4 2023 $145.0 $91.2 $53.8\nAdvanced document parsers address this by either treating tables as atomic units (never splitting them) or\nby converting them into descriptive text (e.g., \"In Q1 2023, Revenue was $124.5M...\"). When testing your\nchunker against this PDF, inspect how it processes this page.\nIR & Text Processing Page 11 of 15",
+      "Usage: This technique is used to solve\noptimization problems. Use this technique to\nselect elements that give maximum profit from\na given set with a limitation on capacity and that\neach element can only be picked once.\n17. 0/1 Knapsack\nDS Involved: Array, HashTable\nEqual Subset Sum Partition\nMinimum Subset Sum Difference\nSample Problems: \nDesignGurus.org\nLogicmojo",
+      "IR & Text Processing Page 13 of 15"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 11,
+        "chunk_id": 47,
+        "score": 6.3593,
+        "dense_rank": 1
+      },
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 19,
+        "chunk_id": 79,
+        "score": -11.2568,
+        "dense_rank": 3
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 13,
+        "chunk_id": 54,
+        "score": -11.26,
+        "dense_rank": 11
+      }
+    ],
+    "id": "q03",
+    "type": "table-lookup",
+    "ground_truth": "The Net Profit in Q4 2023 was $53.8 million.",
+    "evidence": "Q4 2023 $145.0 $91.2 $53.8",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.89,
+    "hit_at_pool": true
+  },
+  {
+    "question": "Which quarter of 2023 had the lowest Net Profit, and what was it?",
+    "answer": "Q3 2023 had the lowest Net Profit, which was $38.7M.",
+    "contexts": [
+      "rows.\nQuarter Revenue (M) Operating Cost (M) Net Profit (M)\nQ1 2023 $124.5 $82.1 $42.4\nQ2 2023 $132.8 $85.0 $47.8\nQ3 2023 $119.2 $80.5 $38.7\nQ4 2023 $145.0 $91.2 $53.8\nAdvanced document parsers address this by either treating tables as atomic units (never splitting them) or\nby converting them into descriptive text (e.g., \"In Q1 2023, Revenue was $124.5M...\"). When testing your\nchunker against this PDF, inspect how it processes this page.\nIR & Text Processing Page 11 of 15",
+      "Usage: This technique is used to solve\noptimization problems. Use this technique to\nselect elements that give maximum profit from\na given set with a limitation on capacity and that\neach element can only be picked once.\n17. 0/1 Knapsack\nDS Involved: Array, HashTable\nEqual Subset Sum Partition\nMinimum Subset Sum Difference\nSample Problems: \nDesignGurus.org\nLogicmojo",
+      "Chunk 1: Tokens 0 to 500\nChunk 2: Tokens 400 to 900\nChunk 3: Tokens 800 to 1300\nThis creates a safety net. If a crucial sentence straddles the boundary at token 500, it might be cut in half\nin Chunk 1. However, because Chunk 2 begins at token 400, that same sentence is highly likely to be\ncaptured in its entirety within Chunk 2. The semantic meaning is preserved in at least one of the vector\nrepresentations.\n7.2 Storage and Cost Implications"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 11,
+        "chunk_id": 47,
+        "score": -0.2506,
+        "dense_rank": 1
+      },
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 19,
+        "chunk_id": 79,
+        "score": -11.1581,
+        "dense_rank": 3
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 40,
+        "score": -11.2509,
+        "dense_rank": 11
+      }
+    ],
+    "id": "q04",
+    "type": "table-aggregate",
+    "ground_truth": "Q3 2023 had the lowest Net Profit, at $38.7 million.",
+    "evidence": "Q3 2023 $119.2 $80.5 $38.7",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.95,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What are the first and the last steps of the shutdown procedure described for the server cluster?",
+    "answer": "Based on the provided context, the first step is \"Verify all active user sessions have been terminated\" and the last step is \"Engage the physical safety lock on the server rack.\"",
+    "contexts": [
+      "2. Disable the primary load balancer routing traffic to the cluster.\n3. Initiate a graceful shutdown signal to the application servers.\n4. Wait 60 seconds for in-flight transactions to complete.\n5. Power down the master database node.\n6. Engage the physical safety lock on the server rack.\nIf a chunk boundary occurs between step 4 and step 5, a user querying \"How do I shut down the\ndatabase?\" might retrieve a chunk starting at step 5 without the critical preceding safety steps. Chunking",
+      "10. Processing Hierarchical Lists\nSimilar to tables, lists possess implicit semantic meaning through their formatting. Numbered lists imply\nsequence or priority, while bulleted lists imply a collection of related items.\n10.1 Procedural Data\nWhen processing manuals or standard operating procedures (SOPs), breaking a numbered list in half can\nbe dangerous or confusing. Consider this shutdown procedure:\n1. Verify all active user sessions have been terminated.",
+      "IR & Text Processing Page 13 of 15"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 12,
+        "chunk_id": 49,
+        "score": 4.074,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 12,
+        "chunk_id": 48,
+        "score": -5.6429,
+        "dense_rank": 7
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 13,
+        "chunk_id": 54,
+        "score": -10.1752,
+        "dense_rank": 6
+      }
+    ],
+    "id": "q05",
+    "type": "list-multi-chunk",
+    "ground_truth": "The first step is to verify that all active user sessions have been terminated. The last step is to engage the physical safety lock on the server rack.",
+    "evidence": "Engage the physical safety lock on the server rack",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.92,
+    "hit_at_pool": true
+  },
+  {
+    "question": "Why does token-based chunking add computational overhead compared with character-based chunking?",
+    "answer": "Token-based chunking adds computational overhead because you must run the text through a tokenizer during the chunking phase, as stated in the context.",
+    "contexts": [
+      "chunk will fit perfectly into the model's context window. The downside is that you must run the text\nthrough a tokenizer during the chunking phase, adding computational overhead.\n6.2 The Hard Cut Problem\nThe fatal flaw of naive fixed-size chunking is the \"hard cut.\" If the token limit is reached in the middle of a\ncrucial defining sentence, the definition is split across two separate chunks. When a user asks a question",
+      "characters will always produce chunks of exactly that length. However, character length correlates poorly\nwith semantic density. A string of 1000 characters could be 150 words in English, but represent a\ndrastically different amount of information in a logographic language like Mandarin.\nToken-based chunking aligns with how language models process text. Models like GPT-4 use specific\ntokenizers (e.g., tiktoken). By chunking based on tokens (e.g., 512 tokens), you guarantee that the resulting",
+      "6. Fixed-Size Chunking Algorithms\nFixed-size chunking is the most basic implementation available. It requires defining a specific threshold—\nusually measured in characters or tokens—and systematically dividing the text once that threshold is\nreached.\n6.1 Character vs. Token Measurement\nWhen implementing a fixed-size strategy, developers must choose a unit of measurement.\nCharacter-based chunking is language agnostic and requires no external libraries. A chunk size of 1000"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 37,
+        "score": 4.3984,
+        "dense_rank": 19
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 36,
+        "score": 3.1752,
+        "dense_rank": 3
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 35,
+        "score": 2.4598,
+        "dense_rank": 2
+      }
+    ],
+    "id": "q06",
+    "type": "reasoning",
+    "ground_truth": "Because the text must be run through a tokenizer during the chunking phase, which adds computational overhead.",
+    "evidence": "you must run the text through a tokenizer",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.94,
+    "hit_at_pool": true
+  },
+  {
+    "question": "According to the comparison of chunking strategies, what is the drawback of semantic chunking?",
+    "answer": "According to the context, semantic chunking is computationally expensive.",
+    "contexts": [
+      "document exceeds this limit, it must be broken down into smaller, manageable pieces. This process is\nknown as chunking.\nChunking is not simply a matter of cutting a text into equal parts. If a cut occurs in the middle of a\nsentence or a crucial explanatory paragraph, the resulting chunk loses its semantic meaning. Therefore, an\neffective chunking strategy must balance the technical constraints of the embedding model with the\nlinguistic integrity of the text.\nKey Takeaway",
+      "5. Introduction to Text Chunking\nChunking is the operational bridge between a long source document and a vector database. The primary\nobjective is to partition the text such that each partition contains a complete, self-contained thought that\ncan be accurately represented by a single embedding vector.\n5.1 Comparison of Common Strategies\nThere are several primary approaches to chunking, each with distinct advantages and trade-offs in terms\nof processing speed and retrieval quality.",
+      "alignment.\nChunk sizes can vary\nwildly.\nSemantic Uses NLP to find topical shifts inthe text. Highest contextualcoherence. Computationally expensive.\nChoosing the right strategy depends entirely on the downstream application. A legal document analysis\ntool may require document-based chunking to preserve clause boundaries, while a general knowledge\nchatbot might perform adequately with recursive character chunking.\nIR & Text Processing Page 7 of 15"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 3,
+        "chunk_id": 18,
+        "score": 2.7232,
+        "dense_rank": 3
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 7,
+        "chunk_id": 32,
+        "score": 1.979,
+        "dense_rank": 5
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 7,
+        "chunk_id": 34,
+        "score": 1.0855,
+        "dense_rank": 6
+      }
+    ],
+    "id": "q07",
+    "type": "table-lookup",
+    "ground_truth": "Semantic chunking is computationally expensive, although it offers the highest contextual coherence.",
+    "evidence": "Computationally expensive",
+    "hit_at_k": true,
+    "reciprocal_rank": 0.3333333333333333,
+    "gen_seconds": 0.79,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What is the dilution effect in vector embeddings?",
+    "answer": "Based on the provided context, the dilution effect is not explicitly defined. The context only mentions that very small chunks produce highly precise embeddings, but it does not explain what the dilution effect is. I don't know based on the provided context.",
+    "contexts": [
+      "data loss. Modern proprietary models, such as OpenAI's `text-embedding-3-large`, can accept up to 8191\ntokens.\n11.2 The Dilution Effect\nJust because a model *can* embed 8000 tokens does not mean it *should*. Vector embeddings represent\ntext by compressing its semantic meaning into a fixed-length array of floats (e.g., 1536 dimensions).\nIf a chunk is very small (a single sentence), its embedding is highly precise and targeted. If a chunk is very",
+      "11. Vector Embeddings and Chunk Size\nThe ideal chunk size is not determined in a vacuum; it is heavily influenced by the specific embedding\nmodel being utilized in the RAG pipeline.\n11.1 Model Context Limits\nOlder models like `bert-base-uncased` have a hard limit of 512 tokens. Attempting to embed a chunk\nlarger than this will result in truncation—the model silently drops any tokens beyond the 512th, leading to",
+      "7.2 Storage and Cost Implications\nWhile overlap improves retrieval recall, it introduces redundancy. An overlap of 20% means the total\nnumber of tokens stored in the vector database increases by roughly 20%. This results in higher\nembedding API costs and increased storage requirements. It can also lead to duplicate information being\nfed into the generative LLM if multiple overlapping chunks are retrieved for the same query.\nIR & Text Processing Page 9 of 15"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 13,
+        "chunk_id": 52,
+        "score": 6.8907,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 13,
+        "chunk_id": 51,
+        "score": -0.9208,
+        "dense_rank": 3
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 41,
+        "score": -1.2598,
+        "dense_rank": 4
+      }
+    ],
+    "id": "q08",
+    "type": "definition",
+    "ground_truth": "When a chunk is very large, its embedding becomes a blended smoothie of many different concepts. For a specific question, a short and precise chunk will then have a much higher cosine similarity than the diluted, multi-topic large chunk.",
+    "evidence": "blended smoothie",
+    "hit_at_k": false,
+    "reciprocal_rank": 0.0,
+    "gen_seconds": 1.11,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What happens if a chunk longer than 512 tokens is embedded with bert-base-uncased?",
+    "answer": "According to the context, attempting to embed a chunk larger than 512 tokens with `bert-base-uncased` will result in truncation—the model silently drops any tokens beyond the 512th.",
+    "contexts": [
+      "11. Vector Embeddings and Chunk Size\nThe ideal chunk size is not determined in a vacuum; it is heavily influenced by the specific embedding\nmodel being utilized in the RAG pipeline.\n11.1 Model Context Limits\nOlder models like `bert-base-uncased` have a hard limit of 512 tokens. Attempting to embed a chunk\nlarger than this will result in truncation—the model silently drops any tokens beyond the 512th, leading to",
+      "this paradigm, queries and documents are embedded into the same space, and relevance is determined by\nthe geometric distance between them (e.g., cosine similarity).\nBecause these dense models have strict token limits (often 512 or 1024 tokens for standard BERT-based\nmodels), the document must be chunked prior to embedding. Each chunk is embedded independently. At\nretrieval time, the system retrieves the most relevant chunks rather than the entire document. This makes",
+      "characters will always produce chunks of exactly that length. However, character length correlates poorly\nwith semantic density. A string of 1000 characters could be 150 words in English, but represent a\ndrastically different amount of information in a logographic language like Mandarin.\nToken-based chunking aligns with how language models process text. Models like GPT-4 use specific\ntokenizers (e.g., tiktoken). By chunking based on tokens (e.g., 512 tokens), you guarantee that the resulting"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 13,
+        "chunk_id": 51,
+        "score": 5.103,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 4,
+        "chunk_id": 23,
+        "score": 3.4958,
+        "dense_rank": 5
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 36,
+        "score": -2.1695,
+        "dense_rank": 3
+      }
+    ],
+    "id": "q09",
+    "type": "factoid",
+    "ground_truth": "The chunk is truncated: the model silently drops any tokens beyond the 512th, which leads to data loss.",
+    "evidence": "silently drops any tokens beyond the 512th",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 1.11,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What does the RAGAS Faithfulness metric measure?",
+    "answer": "RAGAS Faithfulness measures whether the generated answer is hallucinated or strictly derived from the retrieved chunks.",
+    "contexts": [
+      "like RAGAS (Retrieval Augmented Generation Assessment) use LLM-as-a-judge techniques to measure:\nFaithfulness: Is the generated answer hallucinated, or is it strictly derived from the retrieved chunks?\nAnswer Relevance: Does the final answer directly address the user's initial query?\nContext Precision: Are the retrieved chunks actually useful, or do they contain a lot of irrelevant noise\n(often a symptom of chunks being too large)?\nIR & Text Processing Page 14 of 15",
+      "12. Evaluation Metrics for Chunking\nHow do we know if one chunking strategy is objectively better than another? Evaluation in RAG systems is\ncomplex and requires observing both the retrieval phase and the generation phase.\n12.1 Retrieval Metrics\nThe first step is evaluating whether the right chunks are being surfaced. Standard IR metrics apply here:\nHit Rate: Out of N queries, how often does the top-K retrieved chunks contain the necessary\ninformation to answer the question?",
+      "purpose of this guide is to provide a robust corpus for algorithms designed to slice documents into\nsemantically coherent vectors for Retrieval-Augmented Generation (RAG) systems.\nIR & Text Processing Page 1 of 15"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 14,
+        "chunk_id": 57,
+        "score": 3.0668,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 14,
+        "chunk_id": 55,
+        "score": -3.2804,
+        "dense_rank": 2
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 1,
+        "chunk_id": 13,
+        "score": -9.2566,
+        "dense_rank": 7
+      }
+    ],
+    "id": "q10",
+    "type": "definition",
+    "ground_truth": "Faithfulness measures whether the generated answer is hallucinated or strictly derived from the retrieved chunks.",
+    "evidence": "strictly derived from the retrieved chunks",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.79,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What are the storage and cost implications of using a 20% chunk overlap?",
+    "answer": "According to the context, a 20% overlap increases the total number of tokens stored in the vector database by roughly 20%, leading to higher embedding API costs and increased storage requirements. It can also cause duplicate information to be fed into the generative LLM if multiple overlapping chunks are retrieved for the same query.",
+    "contexts": [
+      "7.2 Storage and Cost Implications\nWhile overlap improves retrieval recall, it introduces redundancy. An overlap of 20% means the total\nnumber of tokens stored in the vector database increases by roughly 20%. This results in higher\nembedding API costs and increased storage requirements. It can also lead to duplicate information being\nfed into the generative LLM if multiple overlapping chunks are retrieved for the same query.\nIR & Text Processing Page 9 of 15",
+      "Chunk 1: Tokens 0 to 500\nChunk 2: Tokens 400 to 900\nChunk 3: Tokens 800 to 1300\nThis creates a safety net. If a crucial sentence straddles the boundary at token 500, it might be cut in half\nin Chunk 1. However, because Chunk 2 begins at token 400, that same sentence is highly likely to be\ncaptured in its entirety within Chunk 2. The semantic meaning is preserved in at least one of the vector\nrepresentations.\n7.2 Storage and Cost Implications",
+      "7. Overlap and Sliding Windows\nTo mitigate the \"hard cut\" problem inherent in fixed-size chunking, practitioners employ overlap, also\nknown as a sliding window approach.\n7.1 The Mechanics of Overlap\nInstead of starting the next chunk exactly where the previous one ended, an overlapping strategy steps\nback a defined number of characters or tokens and duplicates a portion of the text. For example, with a\nchunk size of 500 tokens and an overlap of 100 tokens:\nChunk 1: Tokens 0 to 500"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 41,
+        "score": 7.8963,
+        "dense_rank": 2
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 40,
+        "score": 0.8347,
+        "dense_rank": 3
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 9,
+        "chunk_id": 39,
+        "score": -2.0844,
+        "dense_rank": 1
+      }
+    ],
+    "id": "q11",
+    "type": "reasoning",
+    "ground_truth": "A 20% overlap increases the total number of tokens stored in the vector database by roughly 20%, which means higher embedding API costs and increased storage requirements. It can also feed duplicate information to the generative LLM when overlapping chunks are retrieved together.",
+    "evidence": "increases by roughly 20%",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 1.32,
+    "hit_at_pool": true
+  },
+  {
+    "question": "Why is BM25 called a sparse retrieval method, and what is its limitation?",
+    "answer": "Based on the context, BM25 is called a sparse retrieval method because it struggles with synonyms and complex semantic relationships. Its limitation is that it cannot effectively handle these semantic nuances.",
+    "contexts": [
+      "not necessarily more relevant. While BM25 is still widely used today, it remains a sparse retrieval method,\nmeaning it struggles with synonyms and complex semantic relationships.\n2.3 Dense Vector Search\nThe introduction of models like BERT (Bidirectional Encoder Representations from Transformers)\nrevolutionized search by converting text into dense mathematical vectors in a high-dimensional space. In",
+      "document in a collection or corpus. In these systems, chunking was less critical because the search\noperated on a bag-of-words model. Whether a keyword appeared at the beginning or end of a document,\nits presence was what mattered.\n2.2 BM25 and Probabilistic Models\nOkapi BM25 expanded upon TF-IDF by introducing probabilistic retrieval frameworks. It accounted for\ndocument length normalization, recognizing that longer documents naturally contain more terms but are",
+      "about that definition, the retrieval system may return only the first half, which lacks the conclusion, or the\nsecond half, which lacks the subject.\nThis document itself serves as a test case for the hard cut problem. A naive algorithm set to a low\ncharacter limit will invariably slice through the paragraphs on this page in an awkward manner.\nIR & Text Processing Page 8 of 15"
+    ],
+    "retrieved": [
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 4,
+        "chunk_id": 22,
+        "score": 5.4798,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 4,
+        "chunk_id": 21,
+        "score": -0.2149,
+        "dense_rank": 2
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 8,
+        "chunk_id": 38,
+        "score": -5.4102,
+        "dense_rank": 4
+      }
+    ],
+    "id": "q12",
+    "type": "factoid",
+    "ground_truth": "BM25 is a sparse retrieval method, meaning it struggles with synonyms and complex semantic relationships.",
+    "evidence": "struggles with synonyms",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.89,
+    "hit_at_pool": true
+  },
+  {
+    "question": "Which technique do the DSA tips recommend when dealing with the top, maximum, minimum or closest K elements among N elements?",
+    "answer": "Based on the provided context, the DSA tips recommend using a Heap when dealing with top/maximum/minimum/closest 'K' elements among 'N' elements.",
+    "contexts": [
+      "Technique  # 1\nIf we are dealing with\ntop/maximum/minimum/closest \n'K' elements among 'N' elements, we�\nwill be using a Heap.\nLogicmojo Academy",
+      "Usage: This technique is used to find\ntop/smallest/frequently occurring ‘K’ elements in\na set.\n14. Top ‘K’ Elements\nDS Involved: Array, Heap, Queue\n‘K’ Closest Points to the Origin\nMaximum Distinct Elements\nSample Problems: \nDesignGurus.org\nLogicmojo",
+      "Usage: This technique is used to solve\noptimization problems. Use this technique to\nselect elements that give maximum profit from\na given set with a limitation on capacity and that\neach element can only be picked once.\n17. 0/1 Knapsack\nDS Involved: Array, HashTable\nEqual Subset Sum Partition\nMinimum Subset Sum Difference\nSample Problems: \nDesignGurus.org\nLogicmojo"
+    ],
+    "retrieved": [
+      {
+        "source": "BASIC_DSA_TRCIKS.pdf",
+        "page": 2,
+        "chunk_id": 1,
+        "score": 7.0137,
+        "dense_rank": 1
+      },
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 16,
+        "chunk_id": 76,
+        "score": 4.951,
+        "dense_rank": 2
+      },
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 19,
+        "chunk_id": 79,
+        "score": -0.3502,
+        "dense_rank": 7
+      }
+    ],
+    "id": "q13",
+    "type": "factoid",
+    "ground_truth": "Use a Heap.",
+    "evidence": "will be using a Heap",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.93,
+    "hit_at_pool": true
+  },
+  {
+    "question": "Which coding pattern is also known as the Hare and Tortoise algorithm, and how does it work?",
+    "answer": "Based on the provided context, the coding pattern also known as the Hare & Tortoise algorithm is the **Fast & Slow Pointers** technique. It works by using two pointers that traverse the input data at different speeds.",
+    "contexts": [
+      "Usage: Also known as Hare & Tortoise\nalgorithm. This technique uses two pointers\nthat traverse the input data at different speeds.\n4. Fast & Slow Pointers\nDS Involved: Array, String, LinkedList\nMiddle of the LinkedList\nHappy Number\nCycle in a Circular Array\nSample Problems: \nDesignGurus.org\nLogicmojo",
+      "➡  Follow these techniques to\ndistinguish yourself from others! \n➡  All these patterns are discussed in\n\"Grokking the Coding Interview\" and\n\"Grokking Dynamic Programming\"\nfrom DesignGurus.org\nDesignGurus.org\nLogicmojo\nLearn all these techniques & Tricks\nin Logicmojo Live Classes for cracking\nCoding Interviews in MAANG Companies\nCheck logicmojo.com",
+      "20 Coding Patterns \nto master\nMAANG Interviews\nDesignGurus.org\nLogicmojo\nTips & Tricks for Cracking Coding\n                  interviews"
+    ],
+    "retrieved": [
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 6,
+        "chunk_id": 66,
+        "score": 6.0825,
+        "dense_rank": 1
+      },
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 23,
+        "chunk_id": 83,
+        "score": -6.6702,
+        "dense_rank": 5
+      },
+      {
+        "source": "Tricks_for_DSA_Problem_Solving.pdf",
+        "page": 1,
+        "chunk_id": 61,
+        "score": -7.7163,
+        "dense_rank": 7
+      }
+    ],
+    "id": "q14",
+    "type": "factoid",
+    "ground_truth": "Fast and Slow Pointers. It uses two pointers that traverse the input data at different speeds.",
+    "evidence": "Also known as Hare & Tortoise",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 2.34,
+    "hit_at_pool": true
+  },
+  {
+    "question": "What are the three types of machine learning listed in the machine learning basics text?",
+    "answer": "The three types of machine learning listed are supervised learning, unsupervised learning, and reinforcement learning.",
+    "contexts": [
+      "Machine Learning Basics\n\nMachine learning is a subset of artificial intelligence that enables systems to learn and improve\nfrom experience without being explicitly programmed. It focuses on developing computer programs\nthat can access data and use it to learn for themselves.\n\nTypes of Machine Learning:\n1. Supervised Learning: Learning with labeled data\n2. Unsupervised Learning: Finding patterns in unlabeled data\n3. Reinforcement Learning: Learning through rewards and penalties",
+      "3. Fundamentals of Document Parsing\nBefore a document can be chunked, it must be parsed. Parsing is the process of extracting text and\nstructure from various file formats (PDF, DOCX, HTML, Markdown) and converting it into a standardized,\nmachine-readable format.\n3.1 Optical Character Recognition (OCR)\nFor scanned documents or image-based PDFs, OCR is the first step. OCR engines analyze the visual\nrepresentation of text and convert it into character strings. Errors at the OCR stage will propagate",
+      "Results\" heading has a different meaning than the exact same text under \"H3: Future Projections.\"\n3. Paragraph Boundaries: The most natural atomic unit of text is the paragraph. Detecting where one\nparagraph ends and another begins is essential.\n4. Lists and Enumerations: Bulleted and numbered lists contain highly structured information that should\nideally be kept together or chunked logically.\nBy extracting this structural metadata alongside the raw text, advanced chunking algorithms can make"
+    ],
+    "retrieved": [
+      {
+        "source": "machine_learning.txt",
+        "page": 1,
+        "chunk_id": 84,
+        "score": 8.4621,
+        "dense_rank": 1
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 5,
+        "chunk_id": 25,
+        "score": -7.193,
+        "dense_rank": 4
+      },
+      {
+        "source": "Information_Retrieval_and_Text_Processing_Guide_6308.pdf",
+        "page": 5,
+        "chunk_id": 27,
+        "score": -8.3977,
+        "dense_rank": 3
+      }
+    ],
+    "id": "q15",
+    "type": "list-lookup",
+    "ground_truth": "Supervised learning (learning with labeled data), unsupervised learning (finding patterns in unlabeled data), and reinforcement learning (learning through rewards and penalties).",
+    "evidence": "3. Reinforcement Learning",
+    "hit_at_k": true,
+    "reciprocal_rank": 1.0,
+    "gen_seconds": 0.83,
+    "hit_at_pool": true
+  }
+]
